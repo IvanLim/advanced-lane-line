@@ -50,7 +50,8 @@ The calibration process is as follows:
 - Use OpenCV&#39;s **findChessboardCorners()** function to figure out where the corners **currently are**
 - Create an array specifying where you think the corners **should be**
 
-| IMG BEFORE | IMG AFTER |
+| ![Before correction](report/1_calibration_original.png "Before correction")
+ | ![After correction](report/2_calibration_undistorted.png "After correction") |
 | --- | --- |
 
 ## Pre-processing (Before lane identification)
@@ -59,19 +60,19 @@ The calibration process is as follows:
 
 The main objective of pre-processing is to make the lane lines as obvious and as easy to detect as possible, even under different lighting conditions. Here are the pre-processing steps I used, starting with the original image:
 
-[ORIGINAL IMAGE]
+![Original image](report/3_preprocessing_original_image.png "Original image")
 
 ### Histogram Equalization
 
 I performed histogram equalization by converting the image from **RGB** to **YUV** (where the **Y channel** contains **black and white** information, while U and V channels contain color). The Y channel is then fed into the **cv2.equalizeHist()** function the same way you would a grayscale image. The image is then converted back to RGB. The output of this operation looks like this:
 
-[HIST EQUALIZATION IMAGE]
+![Histogram Equalization](report/5_preprocessing_equalhist.png "Histrogram Equalization")
 
 ### Extracting the S channel from the HSL color space
 
 The Saturation channel (S) of the HSL color space is a good way to highlight the lane lines even the lines seem very faint to the human eye. This is done by converting the image to the HSL color space (using **cv2.cvtColor(cv2.RGB2HLS)**).
 
-[S CHANNEL IMAGE]
+![S Channel](report/4_preprocessing_original_s_channel.png "S Channel")
 
 ### Sobel Filter in the X direction
 
@@ -79,25 +80,26 @@ I applied a Sobel filter on a grayscaled version of the image, using the **cv2.S
 
 As an additional step, the results are thresholded so they only show up as a &#39;1&#39; in the image if they fall between a certain value.
 
-[SOBEL X IMAGE]
+![Sobel X filter](report/7_preprocessing_sobel_x.png "Sobel X filter")
 
 ### Sobel Filter in the Y direction
 
 The same filter and threshold is applied in the Y direction
 
-[SOBEL Y IMAGE]
+![Sobel Y filter](report/8_preprocessing_sobel_y.png "Sobel Y filter")
+
 
 ### Gradient Magnitude
 
 Since the Sobel X and Sobel Y filters highlight the changes and approximate the derivative in their respective directions, we could combine them and take it one step further by calculating the gradient magnitude. The same way we would calculate the hypotenuse of a right triangle if we only had the length of the other two sides. This produces the following results:
 
-[GRADIENT MAGNITUDE IMAGE]
+![Gradient magnitude](report/9_preprocessing_gradient_magnitude.png "Gradient magnitude")
 
-### Colour Threshold
+### Color Threshold
 
 Besides detecting edges, we can also use the color information and output a 1 if the values fall within a certain threshold. For the purposes of this project, this operation is done **twice**. Once on the S channel of the original image, and another time on the S channel of the image with its histogram equalized. I noticed that AND-ing the two results made the detection more resistant to sudden patches of dark shadows in the image.
 
-[COLOUR THRESHOLD IMAGE]
+![Color threshold](report/10_preprocessing_color_threshold.png "Color threshold")
 
 ### Combined Threshold
 
@@ -105,7 +107,7 @@ Finally, I combine the results of the previous steps into a combined, thresholde
 
 **(Sobel\_X &amp; Sobel\_Y &amp; Gradient\_magnitude) | (Color\_threshold &amp; Equalized\_histogram\_color\_threshold)**
 
-[COMBINED THRESHOLD IMAGE]
+![Combined threshold](report/11_preprocessing_combined_threshold.png "Combined threshold")
 
 The resulting image highlights the lane lines well enough for analysis.
 
@@ -115,9 +117,10 @@ The resulting image highlights the lane lines well enough for analysis.
 
 Once the lane lines are highlighted, I do a perspective transform of the image to a top-down/birds eye view for further analysis. The code that does this is in the **get\_transform\_matrices()** and **transform\_perspective()** functions in the **Preprocessing.py** module. This is achieved by specifying two sets of points on the image: 4x source points, and 4x destination points. The OpenCV function **getPerspectiveTransform()** will produce a transformation matrix that transforms the image so that the source points meet the destination points. Once you have the transformation matrix, you can apply it to the image using **cv2.warpPerspective()**.
 
-[PERSPECTIVE TRANSFORM SOURCE IMAGE]
+![Perspective transform source points](report/12_perspective_transform_source.png "Perspective transform source points")
 
-[PERSPECTIVE TRANSFORM DEST IMAGE]
+
+![Perspective transform destination points](report/13_perspective_transform_output.png "Perspective transform desination points")
 
 
 ## Lane Analysis
@@ -132,14 +135,14 @@ The goals of lane analysis step are to:
 
 Lane analysis begins with the following image:
 
-[BINARY PERSPECTIVE TRANSFORMED IMAGE]
+![Binary perspective transform](report/14_5_perspective_transformed_binary_image.png "Binary perspective transform")
 
 
 ### Identifying starting points
 
 The methods of analysis described in the lectures seem to work well. I will describe them here. A quick and dirty way to get a first approximation of where the lanes are is to take a histogram of the **bottom half** of the image, and look at where the peaks are. (Half seemed to work best. Taking more than that seemed to produce worse results)
 
-[HISTOGRAM IMAGE]
+![Histogram](report/14_histogram.png "Histogram")
 
 
 There will be cases where this won&#39;t work well (e.g. dotted line happens to be in top half of image), but those can be compensated for with higher level sanity checking.
@@ -152,13 +155,14 @@ Starting from the two initial points, we apply sliding widows and steadily progr
 
 Once we&#39;ve captured all the lane related pixels, we fit a polynomial through them using numpy&#39;s **polyfit()** function. Since we&#39;re only looking about 30 meters ahead, it&#39;s reasonable to only expect a single curve in the road so we fit the pixels using a **second order polynomial**.
 
-[POLY FIT IMAGE]
+![Sliding windows](report/15_sliding_windows.png "Sliding windows")
 
 **Improving the search for subsequent frames**
 
 Once the initial polynomial has been fitted, we can save a bit of computation by not having to figure out the starting points and do the whole sliding window thing again. Instead, we just search in the area **around the polynomial identified in the previous frame** (since we expect lane lines to **gradually change** , at least for now).
 
-[SMARTER POLY FIT IMAGE]
+![Fitted polynomials](report/16_fitted_polynomials.png "Fitted polynomials")
+
 
 ### Highlighting the identified lanes
 
@@ -168,7 +172,8 @@ Once we have identified the lanes, we can highlight them in the original image b
 - Perform a perspective transform back to the Car&#39;s view (using the inverse matrix we calculated earlier)
 - Blending the transformed overlay with the original image
 
-[FINAL OUTPUT IMAGE]
+![Final output](report/17_final_output.png "Final output")
+
 
 ### Calculating road curvature
 
