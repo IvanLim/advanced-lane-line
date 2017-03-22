@@ -223,13 +223,18 @@ class LaneAnalysis():
 		return overlay_image
 
 	def display_stats(self, image, left_fit, right_fit):
-		meters_per_pixel_x = 3.7 / 700
-		meters_per_pixel_y = 30 / 720
-
 		# Get our x's and y's in pixel space
 		ploty = np.linspace(0, image.shape[0] - 1, image.shape[0])
 		left_fit_in_pixels = left_fit[0] * ploty**2 + left_fit[1] * ploty + left_fit[2]
 		right_fit_in_pixels = right_fit[0] * ploty ** 2 + right_fit[1] * ploty + right_fit[2]
+		left_x = left_fit_in_pixels[-1]
+		right_x = right_fit_in_pixels[-1]
+
+		lane_width_in_pixels = right_x - left_x
+		y = image.shape[0]
+
+		meters_per_pixel_x = 3.7 / lane_width_in_pixels
+		meters_per_pixel_y = 30 / y
 
 		# scale them up using our meter-to-pixel ratios for x and y,
 		# then fit a new polynomial through the scaled up points
@@ -238,9 +243,6 @@ class LaneAnalysis():
 
 		# Calculate the distance from center
 		# Sample at the lowest point in the image (y = image_height)
-		y = image.shape[0]
-		left_x = left_fit_in_pixels[-1]
-		right_x = right_fit_in_pixels[-1]
 		lane_center = (left_x + right_x) / 2
 		image_center = image.shape[1] / 2
 		dist_from_center_in_pixels = image_center - lane_center
