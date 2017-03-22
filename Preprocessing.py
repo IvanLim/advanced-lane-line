@@ -42,10 +42,6 @@ def color_threshold(s_channel_image, threshold=[0, 255]):
 	return binary_output
 
 def get_source_points(image):
-	# scolor = [255, 0, 0]
-	# dcolor = [0, 0, 255]
-	# thickness = 5
-
 	h = image.shape[0]
 	w = image.shape[1]
 
@@ -56,24 +52,10 @@ def get_source_points(image):
 	sy1 = sy2 = int(np.round(h / 1.6))
 	sy3 = sy4 = h
 
-	# lineimage = np.copy(image)
-	# cv2.line(lineimage, (sx1, sy1), (sx2, sy2), scolor, thickness)
-	# cv2.line(lineimage, (sx2, sy2), (sx3, sy3), scolor, thickness)
-	# cv2.line(lineimage, (sx3, sy3), (sx4, sy4), scolor, thickness)
-	# cv2.line(lineimage, (sx4, sy4), (sx1, sy1), scolor, thickness)
-	# plt.figure('Perspective Transform: Source Points')
-	# plt.title('Perspective Transform: Source Points')
-	# plt.imshow(lineimage)
-	# plt.show()
-
 	dx1 = dx4 = int(np.round(w / 4))
 	dx2 = dx3 = w - dx1
 	dy1 = dy2 = 0
 	dy3 = dy4 = h
-	# cv2.line(lineimage, (dx1, dy1), (dx2, dy2), dcolor, thickness)
-	# cv2.line(lineimage, (dx2, dy2), (dx3, dy3), dcolor, thickness)
-	# cv2.line(lineimage, (dx3, dy3), (dx4, dy4), dcolor, thickness)
-	# cv2.line(lineimage, (dx4, dy4), (dx1, dy1), dcolor, thickness)
 
 	src_points = np.float32([[sx1, sy1],[sx2, sy2], [sx3, sy3], [sx4, sy4]])
 	dst_points = np.float32([[dx1, dy1], [dx2, dy2], [dx3, dy3], [dx4, dy4]])
