@@ -4,7 +4,7 @@
 
 - Compute the camera calibration matrix and distortion coefficients given a set of chessboard images.
 - Apply a distortion correction to images.
-- Use various image processing techniques to create a thresholded binary image.
+- Use image processing techniques to create a thresholded binary image for analysis.
 - Apply a perspective transform to rectify binary image (&quot;birds-eye view&quot;).
 - Detect lane pixels and fit to find the lane boundary.
 - Determine the curvature of the lane and vehicle position with respect to center.
